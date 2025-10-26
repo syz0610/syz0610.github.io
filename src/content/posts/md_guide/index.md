@@ -57,7 +57,7 @@ define foobar() {
 }
 ```
 
-（这使得复制和粘贴更容易）。您可以选择标记分隔块，以便 Pandoc 对其进行语法高亮：
+（这使得复制和粘贴更容易）。您可以选择标记分隔块，以便 shiki 对其进行语法高亮：
 
 ```python
 import time
@@ -67,6 +67,13 @@ for i in range(10):
     time.sleep(0.5)
     print i
 ```
+:::important
+如果发现代码块没有正确渲染,请参考shiki支持渲染的编程语言列表
+https://shiki.style/languages
+
+如果需要渲染一些shiki不支持的语言类型,比如`llvm`或`assembly`可以切换到prismjs,具体请参考:
+https://prismjs.com/#supported-languages
+:::
 
 ### 这是一个三级标题
 
