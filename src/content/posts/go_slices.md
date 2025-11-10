@@ -465,7 +465,7 @@ arr1 = slices.Insert(arr1, 1, []int{-1, -2, -3, -4}...)
 fmt.Println("插入一组后arr1：", arr1) // 插入一组后arr1： [1 -1 -2 -3 -4 2 3 4 5 0]
 ```
 
-## **查找元素**
+## **Contains 查找元素**
 ### **Contains 是否包含**
 - `Contains` 查找切片中是否包含指定元素，返回`bool`类型
 - `ContainsFunc` 使用自定义函数比较器查找切片中是否包含指定元素，返回`bool`类型
