@@ -8,7 +8,7 @@ import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
 	title: "土豆的博客",
-	subtitle: "White Cut Chicken",
+	subtitle: "Welcome",
 	lang: "zh_CN", // 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
 	themeColor: {
 		hue: 260, // 设置默认主题色,影响初次访问以及主页调色盘重置按钮
@@ -55,7 +55,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/head.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "土豆",
-	bio: "拥抱当下",
+	bio: "可惜飞扬的终究不是理想是它迎风的耳朵",
 	links: [
 		{
 			name: "Twitter",
