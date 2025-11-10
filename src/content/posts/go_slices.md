@@ -1,7 +1,7 @@
 ---
 title: Go语法解析-数组和切片
 published: 2025-10-17
-description: 'Golang面试时候相关的八股文总结'
+description: '数组，尤其是切片的使用方法和库函数'
 image: ''
 tags: [Golang]
 category: 'Golang'
@@ -47,23 +47,22 @@ lang: ''
         slice2 = append(slice2, 99)
         fmt.Printf("slice2 修改后: arr2=%v,slice2=%v\n", arr2, slice2)//slice2 修改后: arr2=[1 2 3 99 5 6 7 8 9 10],slice2=[1 2 3 99]
         // 注意原数组第四位元素变成了99，覆盖了原来4的位置，这是一个很重要的语法陷阱！！！
-    }
+  }
   ```
 - 因此，在golang中，数组的操作相对简单，主要是需要掌握切片的操作技巧
-
 # 初始化
 
 ## 基本概念
 
 - 在了解切片初始化方式前，首先要了解golang中切片的底层数据结构：
-  ```go
-    // 切片的底层结构,运行时可见
-    type slice struct {
-        array unsafe.Pointer    // 指向底层数组的指针
-        len   int               // 切片长度
-        cap   int               // 切片容量
-    }
-  ```
+```go
+// 切片的底层结构,运行时可见
+type slice struct {
+    array unsafe.Pointer    // 指向底层数组的指针
+    len   int               // 切片长度
+    cap   int               // 切片容量
+}
+```
 - 指针决定了切片是引用类型的本质
 - 切片长度用`len()`方法来获取，代表了当前切片中存放了多少个元素
 - 切片容量用`cap()`方法来获取，代表了当前切片的最大容量
@@ -428,8 +427,7 @@ func main() {
 因此需要在上下文中传递指针来保证切片内容的时效性。此外，持续增长的切片也会对内存造成压力，使用指针也可以完美解决这一问题，类似于操作大结构体。
 当然正如前文所述，共享指针意味着程序员自身要对代码的内存管理负责
 :::
-
-# 便捷的库函数操作
+# go-slices库(需求Go1.21|1.22版本)
 :::note
 掌握基础的操作语法自然是必不可少，但实际工程中如果可以妥善使用库函数，无论是代码鲁棒性，抑或是可读性，乃至于执行效率，也许能起到事半功倍的效果
 Go 1.21开始新增slices包，提供了许多针对slice操作的便捷函数调用，无论是刷算法题还是实际工程中都非常受用
@@ -437,8 +435,227 @@ Go 1.22对slices包又做了许多重大更新
 :::
 
 :::important
-注意，本节内容需要Golang版本大于等于1.21，因此如果当前维护的Go版本低于1.21，那么本节可能不适用
-但是如果工程版本大于等于1.18，那么`github.com/samber/lo`库以及它的一些子库，尤其是并行库`github.com/samber/lo/parallel`是一个很不错的替代品
+注意，本节内容需要Golang版本大于等于1.21，部分内容要求1.22版本，因此如果当前维护的Go版本低于1.21，那么本节可能不适用，请注意甄别
+但是如果工程版本大于等于1.18，那么`github.com/samber/lo`库以及它的一些子库，尤其是并行库`github.com/samber/lo/parallel`是一个很不错的替代品，提供了`Lodash`风格的、基于Go泛型特性的高效工具
 :::
 
-## 
+## **Sort**
+- `Sort` 对切片中的元素进行升序排序
+  - **对于浮点数排序，NaN视为最小**
+  - 统一了之前版本的`sort.Ints`或者`sort.Strings`等排序函数为一个接口
+- `SortFunc` 使用自定义比较函数对复合数据类型数组进行排序，例如结构体
+- `SortStableFunc` `SortFunc`的另一个版本，当遇到两个相等的元素时，保持他们原始的索引大小关系
+```go
+fmt.Println("排序前：", arr1)
+slices.Sort(arr1)
+fmt.Println("排序后：", arr1)
+// slices.SortFunc(arr2, func(a, b E) int {})
+// slices.SortStableFunc(arr2, func(a, b E) int {})
+```
+
+## **Insert 插入元素**
+- `Insert` 在索引i处插入一个或多个元素，返回修改后的切片，多个元素插入时支持...操作符
+- 时间复杂度为O(原数组元素个数 + 插入的元素个数)
+- 注意**Go1.22之前**，**如果指定的位置越界，当没有指定插入元素的情况下，不会触发panic**
+- **Go1.22之后**，**如果指定的位置越界，无论是否指定了插入元素的，都会触发panic**
+```go
+arr1 := []int{1, 2, 3, 4, 5}
+arr1 = slices.Insert(arr1, len(arr1), 0) // [1 2 3 4 5 0]
+arr1 = slices.Insert(arr1, 1, []int{-1, -2, -3, -4}...)
+fmt.Println("插入一组后arr1：", arr1) // 插入一组后arr1： [1 -1 -2 -3 -4 2 3 4 5 0]
+```
+
+## **查找元素**
+### **Contains 是否包含**
+- `Contains` 查找切片中是否包含指定元素，返回`bool`类型
+- `ContainsFunc` 使用自定义函数比较器查找切片中是否包含指定元素，返回`bool`类型
+```go
+arr1 := []int{1, 2, 3, 4, 5}
+fmt.Println(slices.Contains(arr1, 3))// true
+fmt.Println(slices.ContainsFunc(arr1, func(n int) bool {
+	return n%3 == 0
+}))// true
+```
+
+### **Index 返回第一次出现的位置**
+- `Index` 查找元素v在数组arr中第一次出现的位置并返回索引，若找不到则返回-1
+- `IndexFunc` 使用自定义函数查找元素v在数组arr中第一次出现的位置并返回索引，若找不到则返回-1
+```go
+	fmt.Println(slices.Index(arr1, 3)) // 2
+	fmt.Println(slices.Index(arr2, 3)) // -1
+	fmt.Println(slices.IndexFunc(arr1, func(n int) bool {
+		return n%7 == 0
+	})) // -1
+```
+### **BinarySearch 二分查找递增序列**
+- `BinarySearch` 二分查找一个**递增**的序列
+  - 如果找到则返回索引和true
+  - 否则返回如果要插入应该放置的位置和false，即不破坏递增的情况下待查元素应在的最小索引
+- `BinarySearchFunc` 使用自定义函数二分查找一个**递增**的序列
+  - 通常用于结构体数组按某个字段排序等**不能直接比较大小**的场合
+:::important
+注意二分查找方法并不会校验序列是否递增，如非递增序列，则返回的结果不确定
+:::
+```go
+	arr1 := []int{1, 2, 3, 4, 5}
+	// 二分查找一个递增的序列,如果找到则返回元素索引和true，否则返回如果要插入应该放置的位置和false
+	fmt.Println(slices.BinarySearch(arr1, 2)) // 2 true
+	// 二分查找一个递增的序列,如果找到则返回元素索引和true，否则返回如果要插入应该放置的位置和false
+	type User struct {
+		User string
+		Age  int
+	}
+	uses := []User{
+		{User: "Alice", Age: 10}, {User: "Boy", Age: 20}, {User: "Cat", Age: 30}, {User: "Dog", Age: 40},
+	}
+	fmt.Println(slices.BinarySearchFunc(uses, User{Age: 27}, func(src User, dst User) int {
+		return cmp.Compare(src.Age, dst.Age)
+	})) // 2 false  这里false是找不到，2意思是如果要插入应该放置的位置
+```
+
+### **Max|Min 查找最大|最小值**
+- `Max`|`Min` 查找给定切片中的最大|最小值，空切片触发panic
+  - 对于浮点类型，如果包含NaN则返回NaN，因为NaN不可比大小，表示不是一个数字或无效数字
+- `MaxFunc`|`MinFunc` 使用自定义函数查找给定切片中的最大|最小值，空切片触发panic
+  - 其余规则同基础方法
+```go
+	arrFloat1 := []float64{1.2, 3.4, 5.6, 7.8}
+	arrFloat2 := []float64{.2, 3.4, 5.6, 7.8, math.NaN()}
+  fmt.Println(slices.Max(arrFloat2))
+	fmt.Println(slices.MaxFunc(arrFloat1, func(a, b float64) int {
+		return int(a - b)
+	}))
+```
+
+## **Replace 替换元素**
+- `Replace` 替换给定下标区间内的元素为指定值，区间为**左闭右开**，返回修改后的切片，**支持...表达式**
+- **注意替换的话可能使得原数组缩短或变长**
+- **Go 1.22**对Replace系列函数做了改进，对于被移除的元素，在原切片中被**标记为零值**(即第二次出现的位置开始置零)
+```go
+fmt.Println("替换前arr1：", arr1)
+arr1 = slices.Replace(arr1, 2, 4, []int{2, 2}...)
+fmt.Println("替换后arr1：", arr1)
+```
+
+## **Reverse 反转切片**
+- **注意没有返回值**
+```go
+slices.Reverse(arr1)
+```
+
+## **Delete 删除元素**
+- `Delete` 删除给定区间的元素，区间为**左闭右开**
+  - **如果给定的区间无效则会panic**
+  - 时间复杂度O(len(s)-j)，因此如果必须删除许多项，**最好调用一次删除全部**
+  - 注意，如果要删除的元素包含**指针**，可以考虑将这些元素**归零**，以便它们引用的对象可以被垃圾回收
+  - **Go 1.22**对Delete系列函数做了改进，对于被移除的元素，在原切片中被**标记为零值**(即第二次出现的位置开始置零)
+- `DeleteFunc` 为自定义函数版本，不再重复
+```go
+fmt.Println("删除前arr1：", arr1)
+arr1 = slices.Delete(arr1, 0, 1) // 这里等于全部删除
+fmt.Println("删除后arr1：", arr1)
+arr1 = slices.DeleteFunc(arr1, func(n int) bool {
+	return n%2 != 0 // 删除奇数
+})
+fmt.Println("自定义删除后arr1：", arr1)
+```
+
+## **Equal 是否相等**
+- `Equal` **逐项比对**元素是否相等，如**不相等则立刻退出**并返回false，否则返回true
+- `EqualFunc` 使用自定义函数来逐项比对元素是否相等，如不相等则立刻退出并返回false，否则返回true
+  - 一般用来比较不能直接判定相等的复合数据类型，比如结构体数组
+```go
+fmt.Println(slices.Equal(arr1, arr2)) // false
+fmt.Println(slices.EqualFunc(arr1, arr2, func(a, b int) bool {
+	return a == b // false,
+}))
+```
+
+## **IsSorted 是否递增**
+- `IsSorted` 判断给定切片是否**递增**
+- `IsSortedFunc` 使用自定义函数判断给定切片是否递增
+  - 一般用来比较不能直接判定相等的复合数据类型，比如结构体数组
+```go
+fmt.Println(slices.IsSorted(arr1))
+fmt.Println(slices.IsSortedFunc(arr3, func(a, b string) int {
+	return cmp.Compare(a, b)
+}))
+```
+
+## **Grow 扩展容量**
+- 扩容n个元素，**n为负值或太大爆内存了则panic**，
+  - **注意扩容后length不变，切片当前内容不变（即没有额外的0）**
+```go
+fmt.Printf("Before Grow,cap is:%d,len is %d, arr is %v\n", cap(arr1), len(arr1), arr1)
+arr1 = slices.Grow(arr1, 21)
+fmt.Printf("After Grow,cap is:%d,len is %d, arr is %v\n", cap(arr1), len(arr1), arr1)
+```
+
+## **Clip 回收容量**
+- `Clip` 回收(删除)切片中**未使用的容量**，执行后切片的长度等于切片的容量
+```go
+arr1 = slices.Clip(arr1)
+fmt.Printf("After Clip,cap is:%d,len is %d, arr is %v\n", cap(arr1), len(arr1), arr1)
+```
+
+## **Compact 压缩(去重)**
+- `Compact` 压缩连续相同的元素为1个，**保留在第一次出现的位置**
+  - 注意该压缩**不改变底层数组**，因此被压缩的元素仍然占用内存，可考虑设置为nil
+  - **Go 1.22**对Compact系列函数做了改进，对于被移除的元素，在原切片中被**标记为零值**(即第二次出现的位置开始置零)
+- `CompactFunc` 使用自定义函数的版本
+```go
+fmt.Println("压缩前：", arr4)
+arr4 = slices.Compact(arr4)
+fmt.Println("压缩后：", arr4)
+arr5 = slices.CompactFunc(arr5, func(n, k int) bool {
+	return k%8 == 0
+})
+fmt.Println("自定义压缩后：", arr5)
+```
+
+## **Clone 克隆(浅拷贝)**
+- ***克隆一个切片并返回它的副本，是浅拷贝，比较危险, 这个函数建议别用了***
+```go
+tmp := slices.Clone(arr1)
+fmt.Println("Clone arr:", tmp)
+```
+
+## **Compare 比较大小**
+- `Compare` **逐项比较**两个切片`s1`和`s2`，直到有一对值不相等，返回该次比较结果
+  - 如果一个切片是另一个切片的子集，则视为该切片小于父切片（即子切片先于父切片遍历完毕且已遍历的部分完全相等）
+  - 如果`s1==s2`则返回`0`
+  - 如果`s1<s2`则返回`-1`
+  - 如果`s1>s2`则返回`1`
+- `CompareFunc` 用自定义函数来比较两个切片，一般用来比较不能直接判定相等的复合数据类型，比如结构体数组
+```go
+fmt.Println(slices.Compare(s1, arr7))
+// slices.CompareFunc(arr1,arr2,func(first,second)int) 
+```
+
+## **Repeat 复制N次元素生成新切片**
+- `Repeat` 对于给定的数据，重复指定的次数，返回一个新切片
+  - **如果次数为负数或者重复后爆内存，则返回panic**
+  - **如果次数为0则返回一个空切片**
+  - **该函数不会返回nil切片**
+```go
+fmt.Println(slices.Repeat([]float64{3.14}, 3))
+```
+
+## **Concat 拼接(需要Go1.22)**
+- `Concat` **Go 1.22**版本新增Concat函数，用于高效拼接多个切片
+```go
+fmt.Println(slices.Concat([]int{11, 22, 33}, []int{44, 55, 66, 0}, []int{100, 200, 300}))
+```
+
+## **迭代器函数(需要Go1.23)**
+- **Go1.23**版本开始官方正式支持`迭代器`，但是目前这一块用起来还是比较难受
+- 以下函数存在于`iter.go`中，**关于Go 1.23 迭代器相关的内容在别的地方介绍，这里不做补充**
+  - `slices.All()`
+  - `slices.AppendSeq()`
+  - `slices.Backward()`
+  - `slices.Chunk()`
+  - `slices.Collect()`
+  - `slices.Values()`
+  - `slices.Sorted()`
+  - `slices.SortedFunc()`
+  - `slices.SortedStableFunc()`
