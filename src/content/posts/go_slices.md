@@ -647,9 +647,12 @@ fmt.Println(slices.Repeat([]float64{3.14}, 3))
 fmt.Println(slices.Concat([]int{11, 22, 33}, []int{44, 55, 66, 0}, []int{100, 200, 300}))
 ```
 
-## **迭代器函数(需要Go1.23)**
-- **Go1.23**版本开始官方正式支持`迭代器`，但是目前这一块用起来还是比较难受
-- 以下函数存在于`iter.go`中，**关于Go 1.23 迭代器相关的内容在别的地方介绍，这里不做补充**
+## **迭代器函数(需要Go1.23~远期1.26)**
+:::important
+请注意，这一部分目前官方还在持续调整中，内容随时可能会发生改变，仅供参考
+:::
+- **Go1.23**版本开始官方正式将`迭代器`加入标准库，但是预计要到`1.26`版本才会完善支持
+- 以下函数存在于`iter.go`中，它们均返回一个`迭代器`
   - `slices.All()`
   - `slices.AppendSeq()`
   - `slices.Backward()`
@@ -659,3 +662,170 @@ fmt.Println(slices.Concat([]int{11, 22, 33}, []int{44, 55, 66, 0}, []int{100, 20
   - `slices.Sorted()`
   - `slices.SortedFunc()`
   - `slices.SortedStableFunc()`
+- 当前版本(Go1.25.4)迭代器主要有两种
+  - `Pull` 签名为`func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func())`
+    - 适用于迭代切片、通道等单值序列
+    - 每轮迭代都输出`值v`和`执行结果ok`
+  - `Pull2` 签名为`func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func())`
+    - 适用于迭代map、带索引的序列等双值序列
+    - 每轮迭代都输出`索引i`、`值v`和`执行结果ok`
+  - 两种迭代器均提供`next()`方法用于遍历给定的序列，`stop()`方法用于终止迭代
+    - 注意在执行`next()`过程中一定要随时判断`ok`标志位，判断是否要终止迭代
+    - 通常在构造迭代器后，使用`defer stop()`语句保证不会忘记关闭迭代器，否则会造成内存泄露
+    - 尽管库函数中提供了竟态检测，但**迭代器是非并发安全的，不可以在多个协程间共享，请分别构造迭代器**
+
+- 在了解完迭代器的用法后，下面给出具体用法
+- 
+### **Values 获取包含序列所有值的迭代器**
+- 使用单值迭代器获取给定序列的值
+- 这里用切片所以效果和`All()`方法差不多，对于比如map类型的话可以很方便获取所有值
+```go
+func main() {
+	names := []string{"Alice", "Bob", "Vera"}
+	values := make([]string, 0, len(names))
+	seq := slices.Values(names)  // 构造迭代器
+	next, stop := iter.Pull(seq) // 构造迭代工具
+	defer stop()                 // 不要忘记关闭迭代器
+
+	for { // 开始迭代
+		v, ok := next()
+		if !ok { // 不要忘记随时判断是否迭代成功
+			break
+		}
+		fmt.Println(v)
+		values = append(values, v)
+	}
+	fmt.Println("values数组:", values)
+}
+/* 输出
+Alice
+Bob
+Vera
+values数组: [Alice Bob Vera]
+*/
+```
+
+### **All 获取序列的索引和值**
+- 使用单值迭代器获取给定序列的索引和值
+- 这里用切片所以效果和`for...range()`方法差不多，但对于比如map类型的话可以很方便剥离所有的键值对
+```go
+func main() {
+	names := []string{"Alice", "Bob", "Vera"}
+	seq := slices.All(names)      // 构造迭代器
+	next, stop := iter.Pull2(seq) // 构造迭代工具
+	defer stop()                  // 不要忘记关闭迭代器
+
+	for { // 开始迭代
+		i, v, ok := next()
+		if !ok { // 不要忘记随时判断是否迭代成功
+			break
+		}
+		fmt.Println(i, ":", v)
+	}
+}
+/* 输出
+	0 : Alice
+	1 : Bob
+	2 : Vera
+*/
+```
+
+### **AppendSeq 迭代版本的append**
+- `AppendSeq` 把迭代器的内容追加到已有切片中
+  - 注意这里是配合`Values()`方法使用，直接从`Values()`方法获取到的迭代器中获取值，相当于迭代版本的`append()`方法
+```go
+func main() {
+	data := []int{1, 2, 3}
+	seq := slices.Values([]int{4, 5, 6})
+	data = slices.AppendSeq(data, seq)
+	fmt.Println(data) // [1 2 3 4 5 6]
+}
+/* 输出
+[1 2 3 4 5 6]
+*/
+```
+
+### **Backward 倒序输出**
+- 倒序输出切片的索引和值
+```go
+func main() {
+	names := []string{"Alice", "Bob", "Vera"}
+	seq := slices.Backward(names) // 构造迭代器
+	next, stop := iter.Pull2(seq) // 构造迭代工具
+	defer stop()                  // 不要忘记关闭迭代器
+
+	for { // 开始迭代
+		i, v, ok := next()
+		if !ok { // 不要忘记随时判断是否迭代成功
+			break
+		}
+		fmt.Printf("%d:%s\n", i, v)
+	}
+}
+/* 输出
+2:Vera
+1:Bob
+0:Alice
+*/
+```
+
+### **Chunk 切分序列**
+- `Chunk` 将给定的序列按照每份n个切分
+  - 如果某一份不足n个则直接返回实际个数
+```go
+func main() {
+	names := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	seq := slices.Chunk(names, 3) // 构造迭代器,给定每一份数量
+	next, stop := iter.Pull(seq)  // 构造迭代工具
+	defer stop()                  // 不要忘记关闭迭代器
+
+	for { // 开始迭代
+		chunk, ok := next()
+		if !ok { // 不要忘记随时判断是否迭代成功
+			break
+		}
+		fmt.Println(chunk)
+	}
+}
+
+/* 输出
+[1 2 3]
+[4 5 6]
+[7 8 9]
+[10]
+*/
+```
+
+### **Collect 迭代版本的构造切片**
+- `Collect` 从迭代器收集所有值构造一个切片
+```go
+func main() {
+	seq := func(yield func(int) bool) { // 注意这里序列用匿名函数构造
+		for i := 0; i < 5; i++ {
+			yield(i)
+		}
+	}
+	vals := slices.Collect(seq)
+	fmt.Println(vals) // [0 1 2 3 4]
+}
+
+/* 输出
+[0 1 2 3 4]
+*/
+```
+
+
+### **Sorted 迭代版本的排序**
+- `Sorted` 迭代版本的排序方法，入参为`Values()`方法返回的迭代器
+- `slices.SortedFunc()` 使用自定义函数排序，依旧是迭代版本的
+- `slices.SortedStableFunc()` 使用自定义函数排序，依旧是迭代版本的，对于相等的元素保持它们排序前的相对顺序不变
+```go
+func main() {
+	nums := []int{5, 2, 8, 1}
+	sorted := slices.Sorted(slices.Values(nums))
+	fmt.Println(sorted) // [1 2 5 8]
+}
+/* 输出
+[1 2 5 8]
+*/
+```
