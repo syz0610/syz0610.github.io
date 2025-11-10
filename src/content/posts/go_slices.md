@@ -439,7 +439,7 @@ Go 1.22对slices包又做了许多重大更新
 但是如果工程版本大于等于1.18，那么`github.com/samber/lo`库以及它的一些子库，尤其是并行库`github.com/samber/lo/parallel`是一个很不错的替代品，提供了`Lodash`风格的、基于Go泛型特性的高效工具
 :::
 
-## **Sort**
+## **Sort 递增排序**
 - `Sort` 对切片中的元素进行升序排序
   - **对于浮点数排序，NaN视为最小**
   - 统一了之前版本的`sort.Ints`或者`sort.Strings`等排序函数为一个接口
