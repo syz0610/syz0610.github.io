@@ -21,6 +21,12 @@ lang: ''
 :::
 
 # 基础概念
+:::note
+- 基础概念讲解部分除最后一个大程序外,参考B站up主**TheCW**的教程编写,建议可以参考它的讲解来理解本文前半部分内容
+- 针对教程没有提到的内容在正文作了补充
+- 最后一个大程序我的实现和他不同，大家也可以参考并写出自己的实现方式
+- 视频地址 <iframe width="100%" height="468" src="//player.bilibili.com/player.html?bvid=BV1qT4y1c77u&autoplay=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+:::
 ## 引子
 - 假设我们有这么个场景：**每隔0.5s输出一次咩，输出5次**。我们很容易想到可以使用for循环来操作：
 ```go
