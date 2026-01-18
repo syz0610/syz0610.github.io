@@ -25,3 +25,7 @@ pnpm-debug.log*
 package-lock.json
 bun.lockb
 yarn.lock
+
+# SKILLS-specific files
+.skills
+.github/skills
