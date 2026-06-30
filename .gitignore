@@ -29,3 +29,9 @@ yarn.lock
 # SKILLS-specific files
 .skills
 .github/skills
+
+# backup files
+*.bak
+*.tmp
+*.swp
+*.old

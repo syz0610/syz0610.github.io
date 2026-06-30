@@ -5,7 +5,7 @@ description: 'defer的用法总结'
 image: ''
 tags: [Golang]
 category: 'Golang'
-draft: false 
+draft: true 
 lang: ''
 ---
 
@@ -16,6 +16,7 @@ lang: ''
 # 基础语法
 
 - `defer`的基础语法如下：
+
   ```go
   func main(){
       fmt.Println("before defer")
@@ -30,17 +31,19 @@ lang: ''
   // in defer
   // defer print
   ```
+
 - 注意到，多个`defer`语句遵循**先入后出**的机制，首先注册`defer print`，其次是`in defer`，实际输出顺序相反
 
 - 延迟触发机制在某些场合非常好用，例如关闭文件句柄，关闭连接等，此时使用defer调用close()方法是一个很好的习惯：
+
   ```go
   // 打开文件获取句柄
   func openFile(fileName string)(string, error) {
     file, err := os.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
+ if err != nil {
+  return "", err
+ }
+ defer file.Close()
     // 下略
   }
   ```
@@ -60,6 +63,7 @@ lang: ''
   - 此外，不同于非嵌套写法，嵌套写法时如果也注册了形如`defer add(x,add(x,y))`的写法，则**不立刻计算内层add，而是作为整体注册，在触发计算时先计算内层再计算外层**
 - 下面来看几种情况：
   - 情况1： 非嵌套写法
+
     ```go
         /** 示例1：一般情况 **/
         func main() {
@@ -75,17 +79,19 @@ lang: ''
         // before return,x= 10
         // defer: x= 20
     ```
-  - 情况2：嵌套写法，捕获命名返回值时，可以看到defer函数在交付本级函数前修改了x的值，因此defer执行的时机是返回上一级之前,main函数中t获取到的是修改后的值 
+
+  - 情况2：嵌套写法，捕获命名返回值时，可以看到defer函数在交付本级函数前修改了x的值，因此defer执行的时机是返回上一级之前,main函数中t获取到的是修改后的值
+
     ```go
     func delay() (x int) {
         x = 10
-	defer func() {
-		x += 10
-		fmt.Println("defer: x=", x)
-	}()
+ defer func() {
+  x += 10
+  fmt.Println("defer: x=", x)
+ }()
 
-	fmt.Println("before return,x=", x)
-	return x
+ fmt.Println("before return,x=", x)
+ return x
     }
 
     func main() {
@@ -96,7 +102,9 @@ lang: ''
     // defer: x= 20
     // t= 20
     ```
+
   - 情况3：**注意!!!捕获匿名返回值时，不影响返回值**
+
     ```go
         func delay() int {
         x := 10
@@ -117,6 +125,7 @@ lang: ''
         // defer: x= 20
         // t= 10
     ```
+
     - 这里是go的常见语法陷阱之一，注意这里不是变量作用与问题，而是go编译器在处理匿名返回值时，遵循以下步骤:
       - 首先，自动创建一个匿名变量，假设为`y`
       - 其次，`return x`语句首先将`x`的值赋值给`y`，注意这里是值拷贝
@@ -129,6 +138,7 @@ lang: ''
       - 答案是肯定的，如果**发生了指针传递**，就可以实现这一点，请看下一种情况
   - 情况4：捕获了**引用类型**的匿名返回值,或者传递了**指针**
     - 捕获了切片,不生效，因为副本已确定，除非修改底层数组
+
     ```go
     func delay() []int {
         x := []int{1, 2, 3}
@@ -144,9 +154,11 @@ lang: ''
     // defer: x= [0 2 3]
     // t= [0 2 3]
     ```
+
     - 指针传递
       - 这里仅作为展示机制使用，实际工程中要特别小心返回指针或者使用闭包捕获指针，可能会造成**变量逃逸**
         - ***变量逃逸可以使用`go build -gcflags=-m xx.go`来分析,此处不多做赘述***
+
     ```go
     func delay(result *int) {
         x := 10
@@ -164,12 +176,12 @@ lang: ''
     // t= 20
     ```
 
-
 # 异常处理panic和recover
 
 - 我们知道，部分语言中存在`try{}catch{}`机制，用于捕获异常后抛出或后处理。但是golang中，遵循捕获异常抛给用户处理的机制，因此不存在该语法
 - golang在遇到panic时，程序会崩溃，进而异常退出，panic之后的代码不会执行。
 - 因此为了避免这种情况，需要使用`recover()`函数来处理：
+
   ```go
     // 情况1：无recover
     func aaa() {
@@ -214,9 +226,11 @@ lang: ''
         defer: string panic main!!
     */
   ```
+
 - 注意`recover()`必须配合`defer`使用，否则无法捕获`panic`
- - 由于延迟触发机制，**`defer`语句一定要在触发`panic`的语句之前定义**
+- 由于延迟触发机制，**`defer`语句一定要在触发`panic`的语句之前定义**
 - 注意如果要单独封装recover功能到其他函数中的话，**在调用时应当直接注册该函数而非嵌套调用，否则无法捕获panic**：
+
     ```go
     func myRecover() {
         if err := recover(); err != nil {
@@ -237,5 +251,6 @@ lang: ''
         panic("panic main!!")
     }
     ```
+
 - 最后要注意`recover()`的意义在于**保证程序优雅地释放资源后退出**，阻止`panic`继续向上传播。
 - 因此可以看到虽然捕获了`panic`但之后的代码并不会继续执行，捕获后会直接返回给该函数的调用者。

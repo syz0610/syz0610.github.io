@@ -5,7 +5,7 @@ description: '工程常用结构与内置排序函数的正确使用'
 image: ''
 tags: [Python]
 category: 'Python'
-draft: false
+draft: true
 lang: ''
 ---
 :::note
@@ -16,9 +16,10 @@ lang: ''
 
 ## 常见线性结构
 
-`list` 适合顺序访问，`deque` 适合队列与双端操作。
+`list`适合顺序访问，`deque`适合队列与双端操作。
 
 示例代码：
+
 ```python
 from collections import deque
 
@@ -29,12 +30,14 @@ print(q)
 ```
 
 :::note
-- Do：队列场景优先用 `deque`。
-- Don’t：用 `list.pop(0)` 实现队列。
+
+- Do：队列场景优先用`deque`。
+- Don’t：用`list.pop(0)`实现队列。
+
 :::
 
 :::important
-- `list.pop(0)` 是 $O(n)$，会慢。
+-`list.pop(0)`是 $O(n)$，会慢。
 :::
 
 ## 树与图的工程概念
@@ -42,18 +45,23 @@ print(q)
 树用于层级结构（目录、组织架构），图用于关系网络（推荐、依赖）。
 
 示例代码：
+
 ```python
 tree = {"root": ["a", "b"], "a": ["a1"], "b": []}
 print(tree["root"])
 ```
 
 :::note
+
 - Do：优先用字典表达关系。
 - Don’t：为简单关系引入复杂库。
+
 :::
 
 :::important
+
 - 过度建模会增加维护成本。
+
 :::
 
 ## 排序与搜索需求
@@ -61,6 +69,7 @@ print(tree["root"])
 工程中排序与查找常见，优先使用内置能力。
 
 示例代码：
+
 ```python
 from bisect import bisect_left
 
@@ -70,19 +79,22 @@ print(pos)
 ```
 
 :::note
-- Do：有序列表查找用 `bisect`。
+
+- Do：有序列表查找用`bisect`。
 - Don’t：对无序数据使用二分。
+
 :::
 
 :::important
-- `bisect` 仅适用于已排序数据。
+-`bisect`仅适用于已排序数据。
 :::
 
 ## 内置排序函数
 
-使用 `sorted()` 或 `list.sort()` 搭配 `key`。
+使用`sorted()`或`list.sort()`搭配`key`。
 
 示例代码：
+
 ```python
 users = [
     {"name": "alice", "score": 91},
@@ -94,12 +106,14 @@ print(users)
 ```
 
 :::note
-- Do：用 `key` 指定排序规则。
+
+- Do：用`key`指定排序规则。
 - Don’t：手写排序算法。
+
 :::
 
 :::important
-- 忘记 `key` 容易导致结果不符合业务预期。
+
+- 忘记`key`容易导致结果不符合业务预期。
+
 :::
-
-

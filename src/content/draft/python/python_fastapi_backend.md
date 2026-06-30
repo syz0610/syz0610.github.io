@@ -5,7 +5,7 @@ description: 'HTTP、RESTful、请求流程与中间件的入门实践'
 image: ''
 tags: [Python,FastAPI]
 category: 'Python'
-draft: false
+draft: true
 lang: ''
 ---
 :::note
@@ -21,6 +21,7 @@ lang: ''
 理解方法、状态码与头部是后端服务的基础。
 
 示例代码：
+
 ```python
 from fastapi import FastAPI
 
@@ -32,12 +33,16 @@ def ping():
 ```
 
 :::note
+
 - Do：区分 GET 与 POST 语义。
 - Don’t：用 GET 做写操作。
+
 :::
 
 :::important
+
 - 不规范方法会导致接口不可维护。
+
 :::
 
 ## RESTful API 设计
@@ -45,6 +50,7 @@ def ping():
 以资源为中心组织接口，使用标准动词。
 
 示例代码：
+
 ```python
 from fastapi import FastAPI
 
@@ -56,12 +62,16 @@ def get_item(item_id: int):
 ```
 
 :::note
+
 - Do：路径表达资源，方法表达动作。
 - Don’t：把动词写进路径。
+
 :::
 
 :::important
+
 - 路径不清晰会增加客户端心智负担。
+
 :::
 
 ## 请求处理流程
@@ -69,6 +79,7 @@ def get_item(item_id: int):
 理解路由、校验、业务逻辑与响应。
 
 示例代码：
+
 ```python
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -85,12 +96,16 @@ def create_item(item: Item):
 ```
 
 :::note
+
 - Do：用模型校验请求体。
 - Don’t：跳过校验直接写入。
+
 :::
 
 :::important
+
 - 校验缺失会导致数据污染。
+
 :::
 
 ## 中间件的基本思想
@@ -98,6 +113,7 @@ def create_item(item: Item):
 中间件用于日志、鉴权、追踪等横切需求。
 
 示例代码：
+
 ```python
 from fastapi import FastAPI, Request
 
@@ -111,12 +127,14 @@ async def add_trace_id(request: Request, call_next):
 ```
 
 :::note
+
 - Do：用中间件统一处理横切需求。
 - Don’t：在每个路由重复同样逻辑。
+
 :::
 
 :::important
+
 - 中间件抛异常会影响全局请求。
+
 :::
-
-

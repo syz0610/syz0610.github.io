@@ -5,7 +5,7 @@ description: '出错可控、可恢复、可定位：异常模型与边界设计
 image: ''
 tags: [Python]
 category: 'Python'
-draft: false
+draft: true
 lang: ''
 ---
 :::note
@@ -19,6 +19,7 @@ lang: ''
 异常会沿调用栈向上传播，边界层决定如何处理与转换。
 
 示例代码：
+
 ```python
 def inner():
     raise ValueError("bad input")
@@ -33,12 +34,16 @@ outer()
 ```
 
 :::note
+
 - Do：在边界层统一处理异常。
 - Don’t：在深层函数里直接吞掉异常。
+
 :::
 
 :::important
+
 - 不保留异常链会丢失根因信息。
+
 :::
 
 ## try / except / finally（资源与恢复）
@@ -46,6 +51,7 @@ outer()
 保证资源释放并记录错误，避免系统处于不一致状态。
 
 示例代码：
+
 ```python
 f = None
 try:
@@ -59,12 +65,16 @@ finally:
 ```
 
 :::note
+
 - Do：必要时使用 finally 释放资源。
 - Don’t：忽略异常导致数据损坏。
+
 :::
 
 :::important
+
 - 未关闭文件在 Windows 上可能导致锁文件。
+
 :::
 
 ## 自定义异常（业务与系统区分）
@@ -72,6 +82,7 @@ finally:
 自定义异常让调用方更清楚错误类型与处理方式。
 
 示例代码：
+
 ```python
 class BusinessError(RuntimeError):
     pass
@@ -87,12 +98,16 @@ def parse_age(value: str) -> int:
 ```
 
 :::note
+
 - Do：定义清晰的业务异常类型。
-- Don’t：所有错误都抛 `Exception`。
+- Don’t：所有错误都抛`Exception`。
+
 :::
 
 :::important
+
 - 异常消息过于含糊会增加排障成本。
+
 :::
 
 ## 异常边界与职责
@@ -100,6 +115,7 @@ def parse_age(value: str) -> int:
 边界层负责异常转换与日志记录，内部函数只做业务逻辑。
 
 示例代码：
+
 ```python
 def create_user(name: str, age_str: str) -> dict:
     if not name:
@@ -113,12 +129,14 @@ except Exception as e:
 ```
 
 :::note
+
 - Do：边界层记录错误与转换异常。
 - Don’t：把日志散落在业务函数中。
+
 :::
 
 :::important
+
 - 边界不清会导致重复处理或漏处理。
+
 :::
-
-
