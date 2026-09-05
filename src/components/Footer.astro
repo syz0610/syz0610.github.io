@@ -1,21 +1,65 @@
 ---
-
 import { profileConfig } from "../config";
 import { url } from "../utils/url-utils";
 
 const currentYear = new Date().getFullYear();
+const startYear = 2024;
+const yearDisplay =
+  startYear === currentYear ? `${startYear}` : `${startYear}-${currentYear}`;
 ---
 
-<!--<div class="border-t border-[var(&#45;&#45;primary)] mx-16 border-dashed py-8 max-w-[var(&#45;&#45;page-width)] flex flex-col items-center justify-center px-6">-->
-<div class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed mx-32"></div>
-<!--<div class="transition bg-[oklch(92%_0.01_var(&#45;&#45;hue))] dark:bg-black rounded-2xl py-8 mt-4 mb-8 flex flex-col items-center justify-center px-6">-->
-<div class="transition border-dashed border-[oklch(85%_0.01_var(--hue))] dark:border-white/15 rounded-2xl mb-12 flex flex-col items-center justify-center px-6">
-    <div class="transition text-50 text-sm text-center">
-        &copy; <span id="copyright-year">{currentYear}</span> {profileConfig.name}. All Rights Reserved. <br>
-        <!-- <a class="transition link text-[var(--primary)] font-medium" target="_blank" href={url('rss.xml')}>RSS</a> /
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href={url('sitemap-index.xml')}>Sitemap</a><br> -->
-        Powered by
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://astro.build">Astro</a> &
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://github.com/syz0610/syz0610.github.io">土豆</a>
-    </div>
+<div
+  class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed mx-32"
+>
+</div>
+
+<div
+  class="transition rounded-2xl mb-12 flex flex-col items-center justify-center px-6 text-sm text-center text-50"
+>
+  <!-- 版权与许可协议 -->
+  <p>
+    &copy; {yearDisplay}
+    <a
+      class="transition link text-[var(--primary)] font-medium"
+      href="https://github.com/syz0610"
+      target="_blank"
+      rel="author">syz0610</a
+    >. All Rights Reserved.
+  </p>
+  <p class="mt-1 text-xs text-50">
+    未经作者书面授权，禁止转载或用于任何商业用途。 如需转载或合作，请通过 GitHub
+    联系作者。
+  </p>
+  <!-- 技术栈与主题致谢 -->
+  <!-- 技术栈与主题致谢 + RSS -->
+  <p class="mt-1">
+    Powered by
+    <a
+      class="transition link text-[var(--primary)] font-medium"
+      href="https://astro.build"
+      target="_blank"
+      rel="noopener">Astro</a
+    >
+    &amp;
+    <a
+      class="transition link text-[var(--primary)] font-medium"
+      href="https://github.com/saicaca/fuwari"
+      target="_blank"
+      rel="noopener">Fuwari</a
+    >
+    Theme. Site by
+    <a
+      class="transition link text-[var(--primary)] font-medium"
+      href="https://github.com/syz0610"
+      target="_blank"
+      rel="author">syz0610</a
+    >.
+    <span class="mx-1">~</span>
+    <a
+      class="transition link text-[var(--primary)] font-medium"
+      href={url("rss.xml")}
+      target="_blank">RSS</a
+    >
+    <span class="mx-1">~</span>
+  </p>
 </div>

@@ -8,8 +8,8 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "土豆的博客",
-	subtitle: "Welcome",
+	title: "土豆自留地",
+	subtitle: "随便看看~",
 	lang: "zh_CN", // 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
 	themeColor: {
 		hue: 260, // 设置默认主题色,影响初次访问以及主页调色盘重置按钮
@@ -77,9 +77,9 @@ export const profileConfig: ProfileConfig = {
 };
 
 export const licenseConfig: LicenseConfig = {
-	enable: true,
-	name: "CC BY-NC-SA 4.0",
-	url: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+	enable: false,
+	name: "未经作者书面授权，禁止转载或用于任何商业用途。",
+	// url: "",
 };
 
 export const expressiveCodeConfig: ExpressiveCodeConfig = {
