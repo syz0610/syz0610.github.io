@@ -23,7 +23,7 @@ export const siteConfig: SiteConfig = {
 		credit: {
 			enable: true, // Display the credit text of the banner image
 			text: "不忘初心", // Credit text to be displayed
-			url: "", // (Optional) URL link to the original artwork or artist's page
+			url: "https://www.gov.cn/gongbao/2026/issue_12486/202601/content_7054238.html", // (Optional) URL link to the original artwork or artist's page
 		},
 	},
 	toc: {
@@ -56,7 +56,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/head.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "土豆",
-	bio: "可惜飞扬的终究不是理想是它迎风的耳朵",
+	bio: "山海寻梦，不觉其远。	前路迢迢，阔步而行。",
 	links: [
 		{
 			name: "Twitter",
